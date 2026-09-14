@@ -32,7 +32,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  logger.log(`🚀 Club Videos API running on http://localhost:${port}/${apiPrefix}`);
+  logger.log(`🚀 VideoClub La Paz API running on http://localhost:${port}/${apiPrefix}`);
 }
 
 await bootstrap();

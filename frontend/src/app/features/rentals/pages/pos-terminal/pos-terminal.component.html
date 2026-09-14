@@ -2,7 +2,7 @@
   <div class="pos-header">
     <div>
       <h1 class="page-title">💳 Terminal Punto de Venta (POS)</h1>
-      <p class="page-subtitle">Emisión y registro rápido de préstamos de películas</p>
+      <p class="page-subtitle">Emisión y registro rápido de préstamos de películas • VideoClub La Paz</p>
     </div>
   </div>
 
@@ -47,7 +47,7 @@
             <input
               type="text"
               class="form-control"
-              placeholder="Escriba el DNI, nombre, correo o teléfono del cliente..."
+              placeholder="Escriba el CI, nombre, correo o teléfono del socio..."
               [ngModel]="customerQuery()"
               (ngModelChange)="customerQuery.set($event)"
             />
@@ -176,16 +176,16 @@
           <div class="pricing-summary">
             <div class="pricing-row">
               <span>Subtotal estimado:</span>
-              <span>\${{ estimatedPrice().subtotal.toFixed(2) }}</span>
+              <span>Bs. {{ estimatedPrice().subtotal.toFixed(2) }}</span>
             </div>
             <div class="pricing-row">
               <span>Descuento:</span>
-              <span class="discount-val">-\${{ estimatedPrice().discount.toFixed(2) }}</span>
+              <span class="discount-val">-Bs. {{ estimatedPrice().discount.toFixed(2) }}</span>
             </div>
             <div class="pricing-divider"></div>
             <div class="pricing-row total-row">
               <span>Total a Cobrar:</span>
-              <span class="total-amount">\${{ estimatedPrice().total.toFixed(2) }}</span>
+              <span class="total-amount">Bs. {{ estimatedPrice().total.toFixed(2) }}</span>
             </div>
           </div>
 

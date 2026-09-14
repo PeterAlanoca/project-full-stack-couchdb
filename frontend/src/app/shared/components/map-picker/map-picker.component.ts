@@ -44,10 +44,10 @@ L.Marker.prototype.options.icon = DefaultIcon;
 export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
 
-  /** Initial / externally controlled latitude */
-  @Input() lat = 10.4806;
-  /** Initial / externally controlled longitude */
-  @Input() lng = -66.9036;
+  /** Initial / externally controlled latitude (default: La Paz, Bolivia) */
+  @Input() lat = -16.5;
+  /** Initial / externally controlled longitude (default: La Paz, Bolivia) */
+  @Input() lng = -68.15;
 
   /** Emits every time the user clicks on the map */
   @Output() locationSelected = new EventEmitter<LatLng>();

@@ -3,7 +3,7 @@
   <div class="header-section">
     <div>
       <h1 class="page-title">👥 Gestión de Clientes</h1>
-      <p class="page-subtitle">Registro, identificación por DNI, datos geográficos y control de membresías</p>
+      <p class="page-subtitle">Registro, identificación por CI (Cédula de Identidad), datos geográficos y control de socios</p>
     </div>
     <button class="btn btn-primary" (click)="openCreateModal()">
       <span>➕</span> Nuevo Cliente
@@ -17,7 +17,7 @@
       <input
         type="text"
         class="form-control search-input"
-        placeholder="Buscar por DNI, nombre, correo, teléfono o ciudad..."
+        placeholder="Buscar por CI, nombre, correo, teléfono o ciudad..."
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
       />
@@ -47,14 +47,14 @@
     <div class="empty-state">
       <span class="empty-icon">👥</span>
       <h3>No se encontraron clientes</h3>
-      <p>Intenta ajustar tus criterios de búsqueda o registra un nuevo cliente con su DNI.</p>
+      <p>Intenta ajustar tus criterios de búsqueda o registra un nuevo socio con su CI.</p>
     </div>
   } @else {
     <div class="data-table-container">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Cliente & DNI</th>
+            <th>Socio &amp; CI</th>
             <th>Contacto</th>
             <th>Dirección & Ubicación</th>
             <th>Fecha Nacimiento</th>
@@ -73,9 +73,9 @@
                     <span class="name-text">{{ customer.fullName }}</span>
                     <div class="dni-wrapper">
                       @if (customer.dni) {
-                        <span class="dni-badge">🪪 DNI: {{ customer.dni }}</span>
+                        <span class="dni-badge">🪪 CI: {{ customer.dni }}</span>
                       } @else {
-                        <span class="dni-badge unassigned">🪪 Sin DNI</span>
+                        <span class="dni-badge unassigned">🪪 Sin CI</span>
                       }
                     </div>
                     @if (customer.block?.reason) {
@@ -163,11 +163,11 @@
             <!-- DNI y Nombre Completo -->
             <div class="form-row">
               <div class="form-group" style="flex: 1;">
-                <label class="form-label">DNI*</label>
+                <label class="form-label">CI (Cédula de Identidad)*</label>
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Ej. 12345678"
+                  placeholder="Ej. 9876543"
                   [(ngModel)]="formData.dni"
                   name="dni"
                 />
@@ -177,7 +177,7 @@
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Ej. Juan Pérez González"
+                  placeholder="Ej. Juan Mamani Quispe"
                   [(ngModel)]="formData.fullName"
                   name="fullName"
                   required
@@ -191,7 +191,7 @@
                 <input
                   type="email"
                   class="form-control"
-                  placeholder="juan.perez@example.com"
+                  placeholder="juan.mamani@example.com"
                   [(ngModel)]="formData.email"
                   name="email"
                   required
@@ -202,7 +202,7 @@
                 <input
                   type="tel"
                   class="form-control"
-                  placeholder="+58 412 1234567"
+                  placeholder="+591 7 1234567"
                   [(ngModel)]="formData.phone"
                   name="phone"
                   required
@@ -232,7 +232,7 @@
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Ej. Av. Francisco de Miranda, Edif. Centro"
+                  placeholder="Ej. Av. Arce, Edif. Illimani"
                   [(ngModel)]="formData.street"
                   name="street"
                 />
@@ -242,7 +242,7 @@
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Ej. Caracas"
+                  placeholder="Ej. La Paz"
                   [(ngModel)]="formData.city"
                   name="city"
                 />

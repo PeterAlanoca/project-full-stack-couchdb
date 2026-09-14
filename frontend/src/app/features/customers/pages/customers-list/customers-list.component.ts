@@ -59,9 +59,9 @@ export class CustomersListComponent implements OnInit {
     email: '',
     birthDate: '',
     street: '',
-    city: '',
-    latitude: 10.4806,
-    longitude: -66.9036,
+    city: 'La Paz',
+    latitude: -16.5,
+    longitude: -68.15,
   };
 
   filteredCustomers = computed(() => {
@@ -122,9 +122,9 @@ export class CustomersListComponent implements OnInit {
       email: '',
       birthDate: '',
       street: '',
-      city: '',
-      latitude: 10.4806,
-      longitude: -66.9036,
+      city: 'La Paz',
+      latitude: -16.5,
+      longitude: -68.15,
     };
     this.showFormModal.set(true);
   }
@@ -132,7 +132,7 @@ export class CustomersListComponent implements OnInit {
   openEditModal(customer: Customer): void {
     this.isEditing.set(true);
     this.selectedCustomer.set(customer);
-    const coords = customer.address?.coordinates?.coordinates || [-66.9036, 10.4806];
+    const coords = customer.address?.coordinates?.coordinates || [-68.15, -16.5];
     this.formData = {
       dni: customer.dni || '',
       fullName: customer.fullName,
@@ -140,9 +140,9 @@ export class CustomersListComponent implements OnInit {
       email: customer.email,
       birthDate: customer.birthDate ? customer.birthDate.slice(0, 10) : '',
       street: customer.address?.street || '',
-      city: customer.address?.city || '',
-      longitude: coords[0] ?? -66.9036,
-      latitude: coords[1] ?? 10.4806,
+      city: customer.address?.city || 'La Paz',
+      longitude: coords[0] ?? -68.15,
+      latitude: coords[1] ?? -16.5,
     };
     this.showFormModal.set(true);
   }
