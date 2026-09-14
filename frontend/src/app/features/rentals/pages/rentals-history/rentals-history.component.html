@@ -1,0 +1,160 @@
+<div class="page-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">📜 Historial y Devoluciones de Préstamos</h1>
+      <p class="page-subtitle">Control de clientes solicitantes, fechas límites de entrega y registro de devoluciones</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="form-control search-input"
+        placeholder="Buscar por DNI, cliente, correo o película..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+    <div class="status-filter">
+      <label class="form-label" style="margin:0 8px 0 0; align-self:center;">Estado:</label>
+      <select
+        class="form-select"
+        style="width: 180px;"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      >
+        <option value="ALL">Todos los Estados</option>
+        <option value="active">En Préstamo (Activos)</option>
+        <option value="returned">Devueltos</option>
+        <option value="overdue">Vencidos / Mora</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Content Table -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando historial de préstamos...</p>
+    </div>
+  } @else if (filteredRentals().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🎟️</span>
+      <h3>No se encontraron registros de préstamos</h3>
+      <p>No hay préstamos que coincidan con los criterios de búsqueda.</p>
+    </div>
+  } @else {
+    <div class="data-table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="min-width: 140px;">🪪 DNI / Cédula</th>
+            <th>Cliente Solicitante</th>
+            <th>Películas Prestadas</th>
+            <th>Fechas (Emisión / Vencimiento)</th>
+            <th>Total Facturado</th>
+            <th>Estado</th>
+            <th style="text-align: right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rental of filteredRentals(); track rental._id) {
+            <tr>
+              <!-- DNI Columna Visible -->
+              <td>
+                <div class="dni-highlight-badge">
+                  <span class="dni-icon">🪪</span>
+                  <strong class="dni-text">{{ getCustomerDni(rental) }}</strong>
+                </div>
+              </td>
+
+              <!-- Cliente -->
+              <td>
+                <div class="customer-cell">
+                  <div class="avatar-circle">{{ getInitials(getCustomerName(rental)) }}</div>
+                  <div>
+                    <strong class="customer-name">{{ getCustomerName(rental) }}</strong>
+                    <span class="customer-email">📧 {{ getCustomerEmail(rental) }}</span>
+                    <span class="rental-id-hint">ID: {{ rental._id | slice:0:16 }}...</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Películas y Copias -->
+              <td>
+                <div class="movie-items-list">
+                  @for (item of (rental.items || []); track item.copyId) {
+                    <div class="movie-item-badge">
+                      <span>🎬 <strong>{{ item.movieTitle }}</strong> ({{ item.days }} días)</span>
+                      <span class="copy-subtag">Copia: {{ item.copyId | slice:-8 }}</span>
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <!-- Fechas -->
+              <td>
+                <div class="dates-cell">
+                  <div class="date-row">
+                    <span class="date-label">Emisión:</span>
+                    <span>📅 {{ rental.rentedAt | slice:0:10 }}</span>
+                  </div>
+                  <div class="date-row">
+                    <span class="date-label">Vencimiento:</span>
+                    <span class="due-tag">⏰ {{ rental.dueDate | slice:0:10 }}</span>
+                  </div>
+                  @if (rental.returnedAt) {
+                    <div class="date-row returned-date">
+                      <span class="date-label">Devuelto el:</span>
+                      <span>✅ {{ rental.returnedAt | slice:0:10 }}</span>
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <!-- Monto Total -->
+              <td>
+                <div class="pricing-cell">
+                  <span class="total-badge">\${{ rental.total?.toFixed(2) || '0.00' }}</span>
+                  @if ((rental.discountAmount || 0) > 0) {
+                    <span class="discount-hint">Desc: -\${{ rental.discountAmount?.toFixed(2) }}</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Estado -->
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-warning]="rental.status === 'active'"
+                  [class.badge-success]="rental.status === 'returned'"
+                  [class.badge-danger]="rental.status === 'overdue'"
+                >
+                  ● {{ rental.status === 'active' ? 'Activo (En curso)' : rental.status === 'returned' ? 'Devuelto' : 'Vencido' }}
+                </span>
+              </td>
+
+              <!-- Acciones -->
+              <td style="text-align: right;">
+                @if (rental.status === 'active') {
+                  <button
+                    class="btn btn-success btn-sm"
+                    (click)="processReturn(rental)"
+                    [disabled]="isSubmitting()"
+                  >
+                    📥 Procesar Devolución
+                  </button>
+                } @else {
+                  <span class="completed-label">✅ Finalizado</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

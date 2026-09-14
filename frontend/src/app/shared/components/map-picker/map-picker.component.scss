@@ -1,0 +1,69 @@
+.map-picker-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.map-container {
+  width: 100%;
+  height: 320px;
+  background: var(--bg-surface, #1e1e2e);
+  z-index: 0;
+
+  // Make sure Leaflet controls sit above our overlay
+  .leaflet-control-zoom {
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+
+    a {
+      background: var(--bg-surface, #2a2a3e);
+      color: var(--text-primary, #e0e0ff);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+
+      &:hover {
+        background: var(--primary, #7c3aed);
+        color: #fff;
+      }
+    }
+  }
+
+  .leaflet-attribution-flag {
+    display: none !important;
+  }
+}
+
+.map-address-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.04));
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+
+  .address-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .address-text {
+    font-size: 12px;
+    color: var(--text-secondary, #a0a0c0);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+}
+
+.map-hint {
+  padding: 6px 14px 10px;
+  font-size: 11px;
+  color: var(--text-muted, #6b6b8a);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.04));
+}

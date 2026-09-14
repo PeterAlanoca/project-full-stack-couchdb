@@ -1,0 +1,38 @@
+<aside class="sidebar" [ngClass]="{ collapsed: isCollapsed() }">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">🎬</span>
+      @if (!isCollapsed()) {
+        <span class="logo-text">Club de Videos</span>
+      }
+    </div>
+    <button class="collapse-btn" (click)="toggleCollapse()" title="Colapsar menú">
+      {{ isCollapsed() ? '›' : '‹' }}
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @for (item of navItems; track item.route) {
+      <a
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [title]="item.label"
+      >
+        <span class="nav-icon">{{ item.icon }}</span>
+        @if (!isCollapsed()) {
+          <span class="nav-label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- Footer -->
+  @if (!isCollapsed()) {
+    <div class="sidebar-footer">
+      <span class="version">v1.0.0</span>
+    </div>
+  }
+</aside>

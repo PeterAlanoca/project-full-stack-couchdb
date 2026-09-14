@@ -1,0 +1,54 @@
+<div class="dashboard-page">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">🎬 Panel de Control - Club de Videos</h1>
+      <p class="dashboard-subtitle">Bienvenido al sistema de administración de catálogo, clientes y préstamos</p>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    @for (card of kpiCards(); track card.label) {
+      <div class="kpi-card" [style.border-left-color]="card.color">
+        <div class="kpi-icon-wrap" [style.background-color]="card.color + '22'" [style.color]="card.color">
+          <span>{{ card.icon }}</span>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ card.value }}</span>
+          <span class="kpi-label">{{ card.label }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Quick Actions Grid -->
+  <div class="section-title-wrap">
+    <h2>⚡ Accesos Rápidos</h2>
+  </div>
+
+  <div class="actions-grid">
+    @for (action of quickActions; track action.title) {
+      <div class="action-card">
+        <div class="action-icon">{{ action.icon }}</div>
+        <div class="action-content">
+          <h3>{{ action.title }}</h3>
+          <p>{{ action.desc }}</p>
+        </div>
+        <a [routerLink]="action.route" class="btn btn-primary btn-sm">
+          {{ action.btnText }} ➜
+        </a>
+      </div>
+    }
+  </div>
+
+  <!-- System Status Banner -->
+  <div class="system-status-banner">
+    <div class="banner-icon">💾</div>
+    <div class="banner-text">
+      <h4>Base de Datos CouchDB Conectada</h4>
+      <p>Motor documental NoSQL con soporte MVCC y replicación activa para el Club de Videos.</p>
+    </div>
+    <a routerLink="/settings" class="btn btn-secondary btn-sm">Ver Diagnóstico</a>
+  </div>
+</div>

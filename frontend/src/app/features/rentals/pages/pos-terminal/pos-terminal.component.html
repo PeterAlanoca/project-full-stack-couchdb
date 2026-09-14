@@ -1,0 +1,203 @@
+<div class="pos-container">
+  <div class="pos-header">
+    <div>
+      <h1 class="page-title">💳 Terminal Punto de Venta (POS)</h1>
+      <p class="page-subtitle">Emisión y registro rápido de préstamos de películas</p>
+    </div>
+  </div>
+
+  <div class="pos-layout">
+    <!-- Left Column: Step 1 Select Customer & Step 2 Select Movies -->
+    <div class="pos-left">
+      <!-- Step 1: Customer Selection Card -->
+      <div class="pos-card">
+        <div class="card-header-badge">
+          <span class="step-num">1</span>
+          <h2>Seleccionar Cliente</h2>
+        </div>
+
+        @if (selectedCustomer()) {
+          <div class="selected-customer-box" [class.is-blocked]="selectedCustomer()?.status === 'blocked'">
+            <div class="customer-avatar">{{ getInitials(selectedCustomer()!.fullName) }}</div>
+            <div class="customer-details">
+              <div class="customer-name-row">
+                <strong>{{ selectedCustomer()!.fullName }}</strong>
+                <span
+                  class="badge"
+                  [class.badge-success]="selectedCustomer()!.status === 'active'"
+                  [class.badge-danger]="selectedCustomer()!.status === 'blocked'"
+                >
+                  {{ selectedCustomer()!.status === 'active' ? 'Activo' : 'Bloqueado' }}
+                </span>
+              </div>
+              <span class="customer-subtext">
+                @if (selectedCustomer()!.dni) {
+                  <strong>🪪 DNI: {{ selectedCustomer()!.dni }}</strong> |
+                }
+                📧 {{ selectedCustomer()!.email }} | 📱 {{ selectedCustomer()!.phone }}
+              </span>
+              @if (selectedCustomer()?.status === 'blocked') {
+                <p class="alert-danger-text">⚠️ Cliente bloqueado: {{ selectedCustomer()!.blockReason || 'Sin motivo especificado' }}. No puede alquilar.</p>
+              }
+            </div>
+            <button class="btn btn-secondary btn-sm" (click)="selectedCustomer.set(null)">Cambiar</button>
+          </div>
+        } @else {
+          <div class="customer-search-wrapper">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Escriba el DNI, nombre, correo o teléfono del cliente..."
+              [ngModel]="customerQuery()"
+              (ngModelChange)="customerQuery.set($event)"
+            />
+            @if (filteredCustomersList().length > 0 && customerQuery().trim().length > 0) {
+              <div class="autocomplete-dropdown">
+                @for (cust of filteredCustomersList(); track cust._id) {
+                  <div
+                    class="autocomplete-item"
+                    [class.blocked-item]="cust.status === 'blocked'"
+                    (click)="selectCustomer(cust)"
+                  >
+                    <div>
+                      <strong>{{ cust.fullName }}</strong>
+                      <span class="item-subtext">
+                        @if (cust.dni) {
+                          <span style="color: #a5b4fc; font-weight: 600;">🪪 DNI: {{ cust.dni }}</span> |
+                        }
+                        {{ cust.email }} ({{ cust.phone }})
+                      </span>
+                    </div>
+                    <span
+                      class="badge"
+                      [class.badge-success]="cust.status === 'active'"
+                      [class.badge-danger]="cust.status === 'blocked'"
+                    >
+                      {{ cust.status === 'active' ? 'Activo' : 'Bloqueado' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Step 2: Select Movie Copies Card -->
+      <div class="pos-card">
+        <div class="card-header-badge">
+          <span class="step-num">2</span>
+          <h2>Catálogo de Películas & Copias Disponibles</h2>
+        </div>
+
+        <div class="catalog-search">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar película por título..."
+            [ngModel]="movieSearchQuery()"
+            (ngModelChange)="movieSearchQuery.set($event)"
+          />
+        </div>
+
+        <div class="movies-catalog-grid">
+          @for (movie of filteredMovies(); track movie._id) {
+            <div class="movie-catalog-card">
+              <div class="movie-card-info">
+                <h4>{{ movie.title }}</h4>
+                <span class="genre-tag">{{ movie.genres.join(', ') }}</span>
+              </div>
+              <div class="movie-copies-action">
+                <button
+                  class="btn btn-primary btn-sm"
+                  (click)="addMovieToCart(movie)"
+                >
+                  ➕ Añadir al Préstamo
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="catalog-empty">
+              <p>No se encontraron películas coincidentes.</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Step 3 Cart & Checkout Summary -->
+    <div class="pos-right">
+      <div class="pos-card cart-card">
+        <div class="card-header-badge">
+          <span class="step-num">3</span>
+          <h2>Resumen del Préstamo</h2>
+        </div>
+
+        @if (cart().length === 0) {
+          <div class="empty-cart">
+            <span style="font-size: 2.5rem;">🛒</span>
+            <p>No hay películas agregadas al carrito.</p>
+            <span class="hint-text">Selecciona películas del catálogo para comenzar.</span>
+          </div>
+        } @else {
+          <div class="cart-items-list">
+            @for (item of cart(); track item.copyId; let idx = $index) {
+              <div class="cart-item">
+                <div class="cart-item-info">
+                  <strong>{{ item.movieTitle }}</strong>
+                  <span class="copy-badge">Copia #{{ item.copyNumber }}</span>
+                </div>
+
+                <div class="cart-item-controls">
+                  <div class="days-stepper">
+                    <label class="form-label" style="font-size: 0.75rem; margin:0;">Días:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      class="form-control days-input"
+                      [ngModel]="item.rentalDays"
+                      (ngModelChange)="updateItemDays(idx, $event)"
+                    />
+                  </div>
+                  <button
+                    class="btn btn-danger btn-icon"
+                    (click)="removeItemFromCart(idx)"
+                    title="Quitar"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Price Breakdown -->
+          <div class="pricing-summary">
+            <div class="pricing-row">
+              <span>Subtotal estimado:</span>
+              <span>\${{ estimatedPrice().subtotal.toFixed(2) }}</span>
+            </div>
+            <div class="pricing-row">
+              <span>Descuento:</span>
+              <span class="discount-val">-\${{ estimatedPrice().discount.toFixed(2) }}</span>
+            </div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-row total-row">
+              <span>Total a Cobrar:</span>
+              <span class="total-amount">\${{ estimatedPrice().total.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <button
+            class="btn btn-primary checkout-btn"
+            (click)="processCheckout()"
+            [disabled]="!canCheckout() || isProcessing()"
+          >
+            {{ isProcessing() ? 'Procesando Préstamo...' : '🚀 Confirmar y Registrar Préstamo' }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

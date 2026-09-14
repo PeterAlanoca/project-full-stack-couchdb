@@ -1,0 +1,246 @@
+<div class="page-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">🎬 Gestión de Películas & Copias</h1>
+      <p class="page-subtitle">{{ movies().length }} película(s) en catálogo con control de inventario</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <span>➕</span> Nueva Película
+    </button>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="filters-card">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="form-control search-input"
+        placeholder="Buscar por título, actor, género, premio Oscar..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando catálogo de películas...</p>
+    </div>
+  } @else if (filteredMovies().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🎥</span>
+      <h3>No se encontraron películas</h3>
+      <p>Intenta con otros términos o añade una nueva película al catálogo.</p>
+    </div>
+  } @else {
+    <!-- Movies Grid -->
+    <div class="movies-grid">
+      @for (movie of filteredMovies(); track movie._id) {
+        <div class="movie-card">
+          <div class="movie-card-header">
+            <div>
+              <h3 class="movie-title">{{ movie.title }}</h3>
+              @if (movie.alternativeTitles.length > 0) {
+                <span class="movie-alt-titles">Alias: {{ movie.alternativeTitles.join(', ') }}</span>
+              }
+            </div>
+            <span class="badge badge-primary">{{ movie.year }}</span>
+          </div>
+
+          <div class="movie-meta">
+            <span class="badge badge-neutral">🎭 {{ movie.genres.join(', ') }}</span>
+            <span class="duration">⏱️ {{ movie.durationMinutes }} min</span>
+          </div>
+
+          <div class="movie-details-section">
+            <div class="detail-row">
+              <span class="detail-label">Actores:</span>
+              <span class="detail-value">{{ movie.actors.slice(0, 3).join(', ') }}{{ movie.actors.length > 3 ? '...' : '' }}</span>
+            </div>
+
+            @if (movie.oscars.length > 0) {
+              <div class="detail-row oscars-row">
+                <span class="detail-label">Oscars:</span>
+                <span class="detail-value">
+                  🏆 {{ getOscarsSummary(movie.oscars) }}
+                </span>
+              </div>
+            }
+          </div>
+
+          <div class="movie-card-footer">
+            <div class="cost-tag">
+              <span>Costo DVD:</span>
+              <strong>{{ movie.unitCostBs | number:'1.2-2' }} Bs.</strong>
+            </div>
+
+            <button class="btn btn-secondary btn-sm" (click)="openCopiesModal(movie)">
+              📀 Gestionar Copias
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal: Nueva Película -->
+  @if (showForm()) {
+    <div class="modal-backdrop" (click)="closeForm()">
+      <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>🎬 Registrar Nueva Película</h2>
+          <button class="btn btn-secondary btn-icon" (click)="closeForm()">✕</button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="saveMovie()">
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label class="form-label">Título Principal *</label>
+                <input type="text" class="form-control" placeholder="Ej. El Padrino" [(ngModel)]="form.title" name="title" required />
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Año de Publicación *</label>
+                <input type="number" class="form-control" [(ngModel)]="form.year" name="year" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Duración (minutos) *</label>
+                <input type="number" class="form-control" placeholder="120" [(ngModel)]="form.durationMinutes" name="duration" required />
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Costo unitario DVD (Bs.) *</label>
+                <input type="number" step="0.5" class="form-control" placeholder="15.00" [(ngModel)]="form.unitCostBs" name="unitCost" required />
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Copias Adquiridas *</label>
+                <input type="number" min="1" class="form-control" [(ngModel)]="form.initialCopies" name="copies" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Géneros (separados por coma) *</label>
+              <input type="text" class="form-control" placeholder="Drama, Crimen, Suspenso" [(ngModel)]="form.genresRaw" name="genres" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Títulos Alternativos (separados por coma)</label>
+              <input type="text" class="form-control" placeholder="The Godfather, Mario Puzo's The Godfather" [(ngModel)]="form.alternativeTitlesRaw" name="altTitles" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Principales Actores (separados por coma)</label>
+              <input type="text" class="form-control" placeholder="Marlon Brando, Al Pacino, James Caan" [(ngModel)]="form.actorsRaw" name="actors" />
+            </div>
+
+            <!-- Premios Oscar -->
+            <div class="oscars-section">
+              <div class="section-subhead">
+                <label class="form-label">🏆 Premios Oscar (Nominaciones y Ganados)</label>
+                <button type="button" class="btn btn-secondary btn-sm" (click)="addOscarField()">+ Añadir Oscar</button>
+              </div>
+              @for (oscar of form.oscars; track $index; let i = $index) {
+                <div class="oscar-input-row">
+                  <input type="text" class="form-control" placeholder="Categoría (Ej. Mejor Película)" [(ngModel)]="oscar.category" [name]="'osc_cat_' + i" />
+                  <input type="number" class="form-control" style="width: 100px;" placeholder="Año" [(ngModel)]="oscar.year" [name]="'osc_yr_' + i" />
+                  <label class="won-checkbox">
+                    <input type="checkbox" [(ngModel)]="oscar.won" [name]="'osc_won_' + i" /> Ganó
+                  </label>
+                  <button type="button" class="btn btn-danger btn-icon" (click)="removeOscarField(i)">✕</button>
+                </div>
+              }
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeForm()">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveMovie()" [disabled]="!isMovieFormValid() || saving()">
+            {{ saving() ? 'Guardando...' : 'Registrar Película' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Gestión de Copias (Añadir / Dar de baja) -->
+  @if (showCopiesModal()) {
+    <div class="modal-backdrop" (click)="closeCopiesModal()">
+      <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>📀 Copias de "{{ selectedMovie()?.title }}"</h2>
+          <button class="btn btn-secondary btn-icon" (click)="closeCopiesModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <!-- Add new copies form -->
+          <div class="add-copies-box">
+            <h4>➕ Adquirir / Registrar Nuevas Copias</h4>
+            <div class="add-copies-row">
+              <input
+                type="number"
+                min="1"
+                class="form-control"
+                style="width: 130px;"
+                placeholder="Cantidad"
+                [(ngModel)]="newCopiesCount"
+              />
+              <input
+                type="number"
+                step="0.5"
+                class="form-control"
+                style="width: 160px;"
+                placeholder="Costo unitario"
+                [(ngModel)]="newCopiesCost"
+              />
+              <button class="btn btn-success" (click)="addNewCopies()" [disabled]="newCopiesCount < 1">
+                Registrar Copias
+              </button>
+            </div>
+          </div>
+
+          <!-- Decommission Copy Form (Dar de baja) -->
+          <div class="decommission-box">
+            <h4>🔻 Registrar Baja de Copia</h4>
+            <p class="hint-text">Especifique el motivo de la baja (no devuelto, robo, daño físico, etc.) y la fecha.</p>
+            <div class="decommission-form">
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label">ID de Copia *</label>
+                  <input type="text" class="form-control" placeholder="Ej. copy_1" [(ngModel)]="decommissionData.copyId" />
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label">Fecha de la Baja</label>
+                  <input type="date" class="form-control" [(ngModel)]="decommissionData.date" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Razón / Motivo de la Baja *</label>
+                <select class="form-select" [(ngModel)]="decommissionData.reason">
+                  <option value="not_returned">No devuelto</option>
+                  <option value="theft">Robo</option>
+                  <option value="loss">Pérdida</option>
+                  <option value="deterioration">Deterioro / Daño</option>
+                  <option value="other">Otro motivo</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Observaciones / Notas</label>
+                <input type="text" class="form-control" placeholder="Detalles adicionales..." [(ngModel)]="decommissionData.notes" />
+              </div>
+              <button class="btn btn-danger" (click)="submitDecommission()" [disabled]="!decommissionData.copyId">
+                Confirmar Baja de Copia
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeCopiesModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

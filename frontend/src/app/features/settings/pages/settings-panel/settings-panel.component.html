@@ -1,0 +1,108 @@
+<div class="page-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">⚙️ Configuración del Sistema & Parámetros</h1>
+      <p class="page-subtitle">Parámetros operativos de tarifas, préstamos y estado de base de datos CouchDB</p>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <!-- Card 1: Rental Policies & Tariffs -->
+    <div class="settings-card">
+      <div class="card-header">
+        <h3>🏷️ Tarifas y Políticas de Préstamo</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Tarifa Diaria Base por DVD ($)</label>
+          <input
+            type="number"
+            step="0.5"
+            class="form-control"
+            [(ngModel)]="config.dailyRentalRate"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Recargo Diario por Retraso / Mora ($)</label>
+          <input
+            type="number"
+            step="0.5"
+            class="form-control"
+            [(ngModel)]="config.dailyLateFee"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Límite Máximo de Copias por Cliente</label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            class="form-control"
+            [(ngModel)]="config.maxRentalsPerCustomer"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Días Estándar de Alquiler</label>
+          <input
+            type="number"
+            min="1"
+            max="15"
+            class="form-control"
+            [(ngModel)]="config.defaultRentalDays"
+          />
+        </div>
+
+        <button
+          class="btn btn-primary"
+          style="margin-top: 8px;"
+          (click)="savePolicies()"
+          [disabled]="isSaving()"
+        >
+          💾 Guardar Parámetros
+        </button>
+      </div>
+    </div>
+
+    <!-- Card 2: CouchDB Status & Health Check -->
+    <div class="settings-card">
+      <div class="card-header">
+        <h3>🗄️ Estado de Conexión CouchDB</h3>
+      </div>
+      <div class="card-body">
+        <div class="status-item">
+          <div class="status-indicator online"></div>
+          <div>
+            <strong>CouchDB Database Server</strong>
+            <span class="status-desc">http://127.0.0.1:5984 (videoclub_db)</span>
+          </div>
+        </div>
+
+        <div class="db-meta-box">
+          <div class="meta-row">
+            <span>Motor Documental:</span>
+            <code>Apache CouchDB 3.x</code>
+          </div>
+          <div class="meta-row">
+            <span>Colección Principal:</span>
+            <code>videoclub_db</code>
+          </div>
+          <div class="meta-row">
+            <span>Índices Mango Configurados:</span>
+            <span class="badge badge-success">movies, customers, rentals, copies</span>
+          </div>
+          <div class="meta-row">
+            <span>Control de Concurrencia:</span>
+            <span>MVCC (_rev token handling)</span>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" style="margin-top: 16px;" (click)="testDbConnection()">
+          🔄 Verificar Conexión con CouchDB
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

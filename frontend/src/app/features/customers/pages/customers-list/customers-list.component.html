@@ -1,0 +1,334 @@
+<div class="page-container">
+  <!-- Top Action Bar -->
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">👥 Gestión de Clientes</h1>
+      <p class="page-subtitle">Registro, identificación por DNI, datos geográficos y control de membresías</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <span>➕</span> Nuevo Cliente
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="form-control search-input"
+        placeholder="Buscar por DNI, nombre, correo, teléfono o ciudad..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+    <div class="status-filter">
+      <label class="form-label" style="margin:0 8px 0 0; align-self:center;">Estado:</label>
+      <select
+        class="form-select"
+        style="width: 160px;"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      >
+        <option value="ALL">Todos</option>
+        <option value="active">Activos</option>
+        <option value="blocked">Bloqueados</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando lista de clientes...</p>
+    </div>
+  } @else if (filteredCustomers().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">👥</span>
+      <h3>No se encontraron clientes</h3>
+      <p>Intenta ajustar tus criterios de búsqueda o registra un nuevo cliente con su DNI.</p>
+    </div>
+  } @else {
+    <div class="data-table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Cliente & DNI</th>
+            <th>Contacto</th>
+            <th>Dirección & Ubicación</th>
+            <th>Fecha Nacimiento</th>
+            <th>Estado</th>
+            <th style="text-align: right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (customer of filteredCustomers(); track customer._id) {
+            <tr>
+              <!-- Cliente y DNI -->
+              <td>
+                <div class="customer-name-cell">
+                  <div class="avatar-circle">{{ getInitials(customer.fullName) }}</div>
+                  <div>
+                    <span class="name-text">{{ customer.fullName }}</span>
+                    <div class="dni-wrapper">
+                      @if (customer.dni) {
+                        <span class="dni-badge">🪪 DNI: {{ customer.dni }}</span>
+                      } @else {
+                        <span class="dni-badge unassigned">🪪 Sin DNI</span>
+                      }
+                    </div>
+                    @if (customer.block?.reason) {
+                      <span class="reason-hint">Motivo: {{ customer.block?.reason }}</span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <!-- Contacto -->
+              <td>
+                <div class="contact-info">
+                  <span>📧 {{ customer.email }}</span>
+                  <span>📱 {{ customer.phone }}</span>
+                </div>
+              </td>
+
+              <!-- Dirección -->
+              <td>
+                <div class="contact-info">
+                  <span>📍 {{ customer.address?.street || 'Sin calle' }}, {{ customer.address?.city || 'Ciudad' }}</span>
+                  @if (customer.address?.coordinates?.coordinates) {
+                    <span class="geo-tag">🌐 [{{ customer.address?.coordinates?.coordinates?.[1] | number:'1.4-4' }}, {{ customer.address?.coordinates?.coordinates?.[0] | number:'1.4-4' }}]</span>
+                  }
+                </div>
+              </td>
+
+              <td>{{ (customer.birthDate | slice:0:10) || '—' }}</td>
+
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-success]="customer.status === 'active'"
+                  [class.badge-danger]="customer.status === 'blocked'"
+                >
+                  ● {{ customer.status === 'active' ? 'Activo' : 'Bloqueado' }}
+                </span>
+              </td>
+
+              <td style="text-align: right;">
+                <div class="action-buttons">
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    (click)="openEditModal(customer)"
+                    title="Editar Datos"
+                  >
+                    ✏️ Editar
+                  </button>
+                  @if (customer.status === 'active') {
+                    <button
+                      class="btn btn-danger btn-sm"
+                      (click)="openBlockModal(customer)"
+                      title="Bloquear Cliente"
+                    >
+                      🔒 Bloquear
+                    </button>
+                  } @else {
+                    <button
+                      class="btn btn-success btn-sm"
+                      (click)="unblockCustomer(customer)"
+                      title="Desbloquear Cliente"
+                    >
+                      🔓 Desbloquear
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Modal: Crear / Editar Cliente -->
+  @if (showFormModal()) {
+    <div class="modal-backdrop" (click)="closeFormModal()">
+      <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? '✏️ Editar Cliente' : '➕ Registrar Nuevo Cliente' }}</h2>
+          <button class="btn btn-secondary btn-icon" (click)="closeFormModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="saveCustomer()">
+            <!-- DNI y Nombre Completo -->
+            <div class="form-row">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">DNI*</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej. 12345678"
+                  [(ngModel)]="formData.dni"
+                  name="dni"
+                />
+              </div>
+              <div class="form-group" style="flex: 2;">
+                <label class="form-label">Nombre Completo *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej. Juan Pérez González"
+                  [(ngModel)]="formData.fullName"
+                  name="fullName"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Correo Electrónico *</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  placeholder="juan.perez@example.com"
+                  [(ngModel)]="formData.email"
+                  name="email"
+                  required
+                />
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Teléfono Celular *</label>
+                <input
+                  type="tel"
+                  class="form-control"
+                  placeholder="+58 412 1234567"
+                  [(ngModel)]="formData.phone"
+                  name="phone"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fecha de Nacimiento *</label>
+              <input
+                type="date"
+                class="form-control"
+                [(ngModel)]="formData.birthDate"
+                name="birthDate"
+                required
+              />
+            </div>
+
+            <!-- Dirección y Coordenadas -->
+            <div class="section-divider">
+              <span>📍 Dirección de Residencia & Coordenadas GPS</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label class="form-label">Calle / Avenida / Edificio</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej. Av. Francisco de Miranda, Edif. Centro"
+                  [(ngModel)]="formData.street"
+                  name="street"
+                />
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Ciudad</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej. Caracas"
+                  [(ngModel)]="formData.city"
+                  name="city"
+                />
+              </div>
+            </div>
+
+            <!-- Mapa Interactivo para Coordenadas GPS -->
+            <div class="map-picker-section">
+              <div class="map-toggle-row">
+                <div class="coords-display">
+                  <span class="coord-chip">
+                    🌐 Lat: <strong>{{ formData.latitude | number:'1.5-5' }}</strong>
+                  </span>
+                  <span class="coord-chip">
+                    🌐 Lng: <strong>{{ formData.longitude | number:'1.5-5' }}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm map-toggle-btn"
+                  (click)="toggleMap()"
+                >
+                  {{ showMap() ? '🗺️ Ocultar Mapa' : '🗺️ Seleccionar en Mapa' }}
+                </button>
+              </div>
+
+              @if (showMap()) {
+                <div class="map-picker-container">
+                  <app-map-picker
+                    [lat]="formData.latitude"
+                    [lng]="formData.longitude"
+                    (locationSelected)="onLocationSelected($event)"
+                  />
+                </div>
+              }
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeFormModal()">Cancelar</button>
+          <button
+            class="btn btn-primary"
+            (click)="saveCustomer()"
+            [disabled]="!isFormValid() || isSubmitting()"
+          >
+            {{ isSubmitting() ? 'Guardando...' : (isEditing() ? 'Actualizar Cliente' : 'Registrar Cliente') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Bloquear Cliente -->
+  @if (showBlockModal()) {
+    <div class="modal-backdrop" (click)="showBlockModal.set(false)">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>🔒 Bloquear Cliente</h2>
+          <button class="btn btn-secondary btn-icon" (click)="showBlockModal.set(false)">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            ¿Está seguro que desea bloquear a <strong style="color: var(--text-primary)">{{ selectedCustomer()?.fullName }}</strong>?
+            Un cliente bloqueado no podrá alquilar copias.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Motivo del Bloqueo *</label>
+            <textarea
+              class="form-control"
+              rows="3"
+              placeholder="Ej. Copias no devueltas tras múltiples recordatorios..."
+              [(ngModel)]="blockReasonInput"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showBlockModal.set(false)">Cancelar</button>
+          <button
+            class="btn btn-danger"
+            (click)="confirmBlockCustomer()"
+            [disabled]="!blockReasonInput.trim() || isSubmitting()"
+          >
+            {{ isSubmitting() ? 'Bloqueando...' : 'Confirmar Bloqueo' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
