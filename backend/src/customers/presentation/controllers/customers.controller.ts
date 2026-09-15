@@ -9,6 +9,8 @@ import { RegisterCustomerDto, UpdateCustomerDto, BlockCustomerDto } from '../../
 import { Inject } from '@nestjs/common';
 import type { ICustomerRepository } from '../../domain/repositories/customer.repository.interface.js';
 import { CUSTOMER_REPOSITORY } from '../../domain/repositories/customer.repository.interface.js';
+import { CurrentAdmin } from '../../../auth/presentation/decorators/current-admin.decorator.js';
+import type { CurrentAdminPayload } from '../../../auth/presentation/decorators/current-admin.decorator.js';
 
 @Controller('customers')
 export class CustomersController {
@@ -32,22 +34,40 @@ export class CustomersController {
   }
 
   @Post()
-  register(@Body() dto: RegisterCustomerDto) {
-    return this.registerUseCase.execute(dto);
+  register(
+    @Body() dto: RegisterCustomerDto,
+    @CurrentAdmin() admin?: CurrentAdminPayload,
+  ) {
+    const adminIdentifier = admin ? `${admin.fullName} (${admin.username})` : 'admin';
+    return this.registerUseCase.execute(dto, adminIdentifier);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateCustomerDto) {
-    return this.updateUseCase.execute(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCustomerDto,
+    @CurrentAdmin() admin?: CurrentAdminPayload,
+  ) {
+    const adminIdentifier = admin ? `${admin.fullName} (${admin.username})` : 'admin';
+    return this.updateUseCase.execute(id, dto, adminIdentifier);
   }
 
   @Patch(':id/block')
-  block(@Param('id') id: string, @Body() dto: BlockCustomerDto) {
-    return this.blockUseCase.execute(id, dto);
+  block(
+    @Param('id') id: string,
+    @Body() dto: BlockCustomerDto,
+    @CurrentAdmin() admin?: CurrentAdminPayload,
+  ) {
+    const adminIdentifier = admin ? `${admin.fullName} (${admin.username})` : 'admin';
+    return this.blockUseCase.execute(id, dto, adminIdentifier);
   }
 
   @Patch(':id/unblock')
-  unblock(@Param('id') id: string) {
-    return this.unblockUseCase.execute(id);
+  unblock(
+    @Param('id') id: string,
+    @CurrentAdmin() admin?: CurrentAdminPayload,
+  ) {
+    const adminIdentifier = admin ? `${admin.fullName} (${admin.username})` : 'admin';
+    return this.unblockUseCase.execute(id, adminIdentifier);
   }
 }

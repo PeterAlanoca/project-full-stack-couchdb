@@ -11,7 +11,7 @@ export class RegisterCustomerUseCase {
     @Inject(CUSTOMER_REPOSITORY) private readonly customerRepository: ICustomerRepository,
   ) {}
 
-  async execute(dto: RegisterCustomerDto): Promise<Customer> {
+  async execute(dto: RegisterCustomerDto, adminId?: string): Promise<Customer> {
     const street = dto.address?.street || 'Sin especificar';
     const city = dto.address?.city || 'Sin especificar';
     const lng = Number(dto.address?.coordinates?.longitude) || 0;
@@ -31,6 +31,7 @@ export class RegisterCustomerUseCase {
           coordinates: [lng, lat],
         },
       },
+      createdBy: adminId || null,
     });
     return this.customerRepository.save(customer);
   }
@@ -42,7 +43,7 @@ export class UpdateCustomerUseCase {
     @Inject(CUSTOMER_REPOSITORY) private readonly customerRepository: ICustomerRepository,
   ) {}
 
-  async execute(customerId: string, dto: UpdateCustomerDto): Promise<Customer> {
+  async execute(customerId: string, dto: UpdateCustomerDto, adminId?: string): Promise<Customer> {
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) throw new EntityNotFoundException('Customer', customerId);
     const updated = customer.update({
@@ -64,6 +65,7 @@ export class UpdateCustomerUseCase {
           },
         },
       }),
+      updatedBy: adminId || null,
     });
     return this.customerRepository.update(updated);
   }
@@ -75,10 +77,10 @@ export class BlockCustomerUseCase {
     @Inject(CUSTOMER_REPOSITORY) private readonly customerRepository: ICustomerRepository,
   ) {}
 
-  async execute(customerId: string, dto: BlockCustomerDto): Promise<Customer> {
+  async execute(customerId: string, dto: BlockCustomerDto, adminId?: string): Promise<Customer> {
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) throw new EntityNotFoundException('Customer', customerId);
-    const blocked = customer.blockCustomer(dto.reason);
+    const blocked = customer.blockCustomer(dto.reason, adminId);
     return this.customerRepository.update(blocked);
   }
 }
@@ -89,10 +91,10 @@ export class UnblockCustomerUseCase {
     @Inject(CUSTOMER_REPOSITORY) private readonly customerRepository: ICustomerRepository,
   ) {}
 
-  async execute(customerId: string): Promise<Customer> {
+  async execute(customerId: string, adminId?: string): Promise<Customer> {
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) throw new EntityNotFoundException('Customer', customerId);
-    const unblocked = customer.unblock();
+    const unblocked = customer.unblock(adminId);
     return this.customerRepository.update(unblocked);
   }
 }

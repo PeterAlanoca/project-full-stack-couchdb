@@ -28,6 +28,8 @@ export interface Customer {
   registeredAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 @Component({

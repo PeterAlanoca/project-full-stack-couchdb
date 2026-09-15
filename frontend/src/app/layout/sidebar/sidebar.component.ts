@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgClass } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 
 interface NavItem {
   label: string;
@@ -16,7 +17,10 @@ interface NavItem {
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
-  isCollapsed = signal(false);
+  private readonly authService = inject(AuthService);
+
+  readonly isCollapsed = signal(false);
+  readonly currentAdmin = this.authService.currentAdmin;
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
@@ -28,5 +32,9 @@ export class SidebarComponent {
 
   toggleCollapse(): void {
     this.isCollapsed.update((v) => !v);
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

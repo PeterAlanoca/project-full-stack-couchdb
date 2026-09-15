@@ -29,10 +29,33 @@
     }
   </nav>
 
-  <!-- Footer -->
-  @if (!isCollapsed()) {
-    <div class="sidebar-footer">
-      <span class="version">v1.0.0 · La Paz, Bolivia</span>
-    </div>
-  }
+  <!-- Footer: Admin Profile & Logout -->
+  <div class="sidebar-footer">
+    @if (currentAdmin(); as admin) {
+      <div class="admin-card" [title]="admin.fullName">
+        <div class="admin-avatar">
+          <span>{{ admin.fullName.charAt(0).toUpperCase() }}</span>
+        </div>
+        @if (!isCollapsed()) {
+          <div class="admin-details">
+            <span class="admin-name">{{ admin.fullName }}</span>
+            <span class="admin-role">{{ admin.role }} · &#64;{{ admin.username }}</span>
+          </div>
+          <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" x2="9" y1="12" y2="12"></line>
+            </svg>
+          </button>
+        }
+      </div>
+    }
+
+    @if (!isCollapsed()) {
+      <div class="version-badge">
+        <span>v1.0.0 · La Paz, Bolivia</span>
+      </div>
+    }
+  </div>
 </aside>

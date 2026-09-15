@@ -3,14 +3,14 @@ import {
   Catch,
   ArgumentsHost,
   HttpStatus,
+  HttpException,
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 
 /**
- * Catches CouchDB HTTP 409 Conflict errors (MVCC revision mismatch).
- * These occur when two concurrent writes target the same document with the same _rev.
- * This is the core of CouchDB's optimistic concurrency control demonstration.
+ * Catches CouchDB HTTP 409 Conflict errors (MVCC revision mismatch)
+ * and properly passes through standard NestJS HttpExceptions (401, 404, 400, etc.).
  */
 @Catch()
 export class CouchdbConflictFilter implements ExceptionFilter {
@@ -42,7 +42,29 @@ export class CouchdbConflictFilter implements ExceptionFilter {
       return;
     }
 
-    // Re-throw for other exception filters to handle
+    // Pass through standard NestJS HttpExceptions (e.g. 401 Unauthorized, 404, 400)
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+      const res = exception.getResponse();
+      if (typeof res === 'object' && res !== null) {
+        response.status(status).json({
+          statusCode: status,
+          timestamp: new Date().toISOString(),
+          path: request.url,
+          ...(res as object),
+        });
+      } else {
+        response.status(status).json({
+          statusCode: status,
+          message: res,
+          timestamp: new Date().toISOString(),
+          path: request.url,
+        });
+      }
+      return;
+    }
+
+    // Default 500 error
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       error: 'INTERNAL_ERROR',

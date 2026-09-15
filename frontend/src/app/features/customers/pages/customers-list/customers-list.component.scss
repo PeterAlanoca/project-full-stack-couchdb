@@ -108,6 +108,18 @@
   }
 }
 
+.admin-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
 .reason-hint {
   font-size: 0.75rem;
   color: #fb7185;

@@ -40,6 +40,8 @@ export interface CustomerProps {
   block: BlockRecord | null;
   registeredAt: Date;
   updatedAt: Date;
+  createdBy?: string | null;
+  updatedBy?: string | null;
 }
 
 export class Customer {
@@ -52,6 +54,7 @@ export class Customer {
     email: string;
     birthDate: Date;
     address: CustomerAddress;
+    createdBy?: string | null;
   }): Customer {
     if (!params.fullName || params.fullName.trim().length === 0) {
       throw new Error('Customer fullName cannot be empty.');
@@ -72,6 +75,8 @@ export class Customer {
       block: null,
       registeredAt: now,
       updatedAt: now,
+      createdBy: params.createdBy || null,
+      updatedBy: params.createdBy || null,
     });
   }
 
@@ -112,38 +117,47 @@ export class Customer {
   get updatedAt(): Date {
     return this.props.updatedAt;
   }
+  get createdBy(): string | null {
+    return this.props.createdBy || null;
+  }
+  get updatedBy(): string | null {
+    return this.props.updatedBy || null;
+  }
 
   isBlocked(): boolean {
     return this.props.status === 'blocked';
   }
 
-  blockCustomer(reason: string): Customer {
+  blockCustomer(reason: string, adminId?: string): Customer {
     return new Customer({
       ...this.props,
       status: 'blocked',
       block: { reason, blockedAt: new Date() },
       updatedAt: new Date(),
+      updatedBy: adminId || this.props.updatedBy || null,
     });
   }
 
-  unblock(): Customer {
+  unblock(adminId?: string): Customer {
     return new Customer({
       ...this.props,
       status: 'active',
       block: null,
       updatedAt: new Date(),
+      updatedBy: adminId || this.props.updatedBy || null,
     });
   }
 
   update(
     params: Partial<
       Pick<CustomerProps, 'dni' | 'fullName' | 'phone' | 'email' | 'birthDate' | 'address'>
-    >,
+    > & { updatedBy?: string | null },
   ): Customer {
     return new Customer({
       ...this.props,
       ...params,
       updatedAt: new Date(),
+      updatedBy: params.updatedBy !== undefined ? params.updatedBy : this.props.updatedBy,
     });
   }
 
@@ -161,6 +175,8 @@ export class Customer {
       block: this.props.block,
       registeredAt: this.props.registeredAt ? this.props.registeredAt.toISOString() : '',
       updatedAt: this.props.updatedAt ? this.props.updatedAt.toISOString() : '',
+      createdBy: this.props.createdBy || null,
+      updatedBy: this.props.updatedBy || null,
     };
   }
 }

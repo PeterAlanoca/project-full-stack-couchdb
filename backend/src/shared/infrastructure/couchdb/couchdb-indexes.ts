@@ -32,6 +32,10 @@ export const MANGO_INDEXES = [
     name: 'idx_rental_status_duedate',
     index: { fields: ['_type', 'status', 'dueDate'] },
   },
+  {
+    name: 'idx_admin_username',
+    index: { fields: ['type', 'username'] },
+  },
 ];
 
 export async function ensureIndexes(db: nano.DocumentScope<any>): Promise<void> {

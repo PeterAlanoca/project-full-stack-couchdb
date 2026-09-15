@@ -77,6 +77,11 @@
                       } @else {
                         <span class="dni-badge unassigned">🪪 Sin CI</span>
                       }
+                      @if (customer.createdBy) {
+                        <span class="admin-badge" title="Registrado por este administrador">
+                          👤 {{ customer.createdBy }}
+                        </span>
+                      }
                     </div>
                     @if (customer.block?.reason) {
                       <span class="reason-hint">Motivo: {{ customer.block?.reason }}</span>

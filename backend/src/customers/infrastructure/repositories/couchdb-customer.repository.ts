@@ -21,6 +21,8 @@ interface CustomerDocument {
   block: { reason: string; blockedAt: string } | null;
   registeredAt: string;
   updatedAt: string;
+  createdBy?: string | null;
+  updatedBy?: string | null;
 }
 
 @Injectable()
@@ -47,6 +49,8 @@ export class CouchdbCustomerRepository implements ICustomerRepository {
       block,
       registeredAt: new Date(doc.registeredAt),
       updatedAt: new Date(doc.updatedAt),
+      createdBy: doc.createdBy || null,
+      updatedBy: doc.updatedBy || null,
     } as CustomerProps);
   }
 
@@ -66,6 +70,8 @@ export class CouchdbCustomerRepository implements ICustomerRepository {
         : null,
       registeredAt: customer.registeredAt.toISOString(),
       updatedAt: customer.updatedAt.toISOString(),
+      createdBy: customer.createdBy,
+      updatedBy: customer.updatedBy,
     };
   }
 
